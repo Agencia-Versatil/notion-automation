@@ -1,0 +1,38 @@
+import requests
+
+# 🔐 Tu API Key de Notion (¡Mantenla privada!)
+NOTION_API_KEY = "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"
+
+# 📂 ID de la base de datos de Notion donde están las tareas
+DATABASE_ID = "14d32c55-109b-8057-8758-f829480590ed"
+
+# 🌐 URL de la API de Notion
+NOTION_URL = "https://api.notion.com/v1/pages"
+
+# 📌 Datos de la tarea de prueba
+new_task = {
+    "parent": {"database_id": DATABASE_ID},
+    "properties": {
+        "Nombre": {"title": [{"text": {"content": "Nueva tarea en Notion"}}]},
+        "Departamento": {"select": {"name": "Web y SEO"}},
+        "Encargado": {"people": []},  # Sin persona asignada
+    }
+}
+
+# 📨 Encabezados para la petición
+headers = {
+    "Authorization": f"Bearer {NOTION_API_KEY}",
+    "Content-Type": "application/json",
+    "Notion-Version": "2022-06-28"  # Última versión de la API
+ }
+# 📤 Enviar solicitud a Notion
+response = requests.post(NOTION_URL, json=new_task, headers=headers)
+
+# ✅ Verificar la respuesta
+if response.status_code == 201:
+    print("✅ Tarea creada correctamente en Notion.")
+else:
+    print("❌ Error al crear la tarea:", response.json())
+
+
+

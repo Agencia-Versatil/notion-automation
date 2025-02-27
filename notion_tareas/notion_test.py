@@ -9,7 +9,7 @@ from notion_client.errors import APIResponseError
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class NotionTaskManager:
         load_dotenv()
         self.notion_token = os.getenv("NOTION_TOKEN")
         self.database_id = os.getenv("NOTION_DATABASE_ID")
-        
+
         if not self.notion_token or not self.database_id:
             raise ValueError("Faltan las variables de entorno: NOTION_TOKEN y NOTION_DATABASE_ID")
         
@@ -52,12 +52,23 @@ class NotionTaskManager:
 def process_tasks():
     manager = NotionTaskManager()
     tasks = manager.get_tasks()
-    
+
     for task in tasks:
         task_id = task["id"]
         properties = task.get("properties", {})
         estado = properties.get("Estado", {}).get("status", {}).get("name", "")
-        
+        departamento = properties.get("Departamentos", {}).get("multi_select", [])
+
+        propiedades_notion = {
+            "Tarea": {"title": [{"text": {"content": properties.get("Tarea", {}).get("title", "")}}]},
+            "Estado": {"status": {"name": estado}},
+            "Prioridad": {"select": {"name": properties.get("Prioridad", {}).get("select", "")}},
+            "Descripción": {"rich_text": [{"text": {"content": properties.get("Descripción", {}).get("rich_text", "")}}]}
+        }
+
+        if departamento:
+            propiedades_notion["Departamentos"] = {"multi_select": [{"name": departamento}]}
+
         if estado == "En curso":
             manager.mark_complete(task_id)
             logger.info(f"✔️ Tarea {task_id} marcada como completada")
